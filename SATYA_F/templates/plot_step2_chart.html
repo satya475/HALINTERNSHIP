@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Step 2: Select Chart Type</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='plotspanstyle.css') }}">
+
+</head>
+<body class="p-5">
+  <h2 style="color: white;"><article>Step 2: Choose Chart Type</article></h2>
+  <form method="post">
+    <select name="chart_type" required>
+      <option value="">-- Select Chart Type --</option>
+      <option value="line">Line Chart</option>
+      <option value="bar">Bar Chart</option>
+      <option value="pie">Pie Chart</option>
+    </select>
+    <button type="submit">Next</button>
+  </form>
+
+   <a href="{{ url_for('dashboard') }}" class="button">🏠 Home</a>
+</body>
+</html> 
