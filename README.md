@@ -1,0 +1,2 @@
+# HALINTERNSHIP
+SmartDoc-AI
