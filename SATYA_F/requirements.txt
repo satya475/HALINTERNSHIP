@@ -44,7 +44,6 @@ pyasn1==0.6.0
 pydantic==2.11.7
 pydantic_core==2.33.2
 PyMuPDF==1.26.3
-python ==3.11.9
 pywin32-ctypes==0.2.3
 PyYAML==6.0.2
 regex==2024.11.6
