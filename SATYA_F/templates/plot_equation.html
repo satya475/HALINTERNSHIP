@@ -1,33 +1,4 @@
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Plot Equation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='plotspanstyle.css') }}">
-</head>
-<body>
-    <h2>Plot a Mathematical Equation</h2>
-    <form method="POST">
-        <label>Equation (in terms of x):</label><br>
-        <input type="text" name="equation" placeholder="e.g. x**2 + 2*x + 1" required><br><br>
 
-        <label>X-axis Range:</label><br>
-        From <input type="number" step="any" name="x_start" value="-10" required>
-        to <input type="number" step="any" name="x_end" value="10" required><br><br>
-
-        <button type="submit">Plot</button>
-    </form>
-
-    {% if plot_url %}
-        <h3>Preview:</h3>
-        <img src="data:image/png;base64,{{ plot_url }}" alt="Equation Plot"><br><br>
-        <a href="{{ url_for('download_equation_plot') }}">Download Plot</a>
-        {% endif %}
-
-<a href="{{ url_for('dashboard') }}" class="action-button2">🏠 Home</a>
-
-    </body>
-</html> -->
 
 
 <form method="POST">

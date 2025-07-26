@@ -5,23 +5,43 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-
 </head>
 <body class="dashboard-bg">
-  <a href="{{ url_for('my_account') }}" class="action-button2" style="margin-right: 78vw;" >Account 👤</a>
+  <div class="top-buttons">
+  <a href="{{ url_for('my_account') }}" class="action-button2">Account 👤</a>
   <a href="{{ url_for('logout') }}" class="action-button2">Logout 🚪</a>
+</div>
+  <!-- <a href="{{ url_for('my_account') }}" class="action-button2" >Account 👤</a>
+  <a href="{{ url_for('logout') }}" class="action-button2">Logout 🚪</a> -->
 
-<h1 class="welcome-heading">Welcome Back, {{ username }}👋</h1>
+<h1 class="welcome-heading">Welcome Back, {{ username }}😊</h1>
 
-<div class="dashboard-actions">
+<!-- <div class="dashboard-actions">
 
   <a href="{{ url_for('plotspan_choice') }}" class="action-button">PlotSpan📊</a>
-
-  
   <a href="{{ url_for('pdf_chat') }}" class="action-button">PDF Chat📃</a>
   <a href="{{ url_for('ocr_extract') }}" class="action-button">OCR Text Extractor</a>
-  <a href="{{ url_for('text_to_qr') }}">QR Code Generator</a>
+  <a href="{{ url_for('text_to_qr') }}" class="action-button">QR Code Generator</a>
 
+</div> -->
+
+<div class="dashboard-actions">
+  <a href="{{ url_for('plotspan_choice') }}" class="action-button">
+    <h3>PlotSpan📊</h3>
+    <p>Create stunning visualizations with your data in just a few clicks.</p>
+  </a>
+  <a href="{{ url_for('pdf_chat') }}" class="action-button">
+    <h3>PDF Chat📃</h3>
+    <p>Interact with your PDFs and get instant insights from documents.</p>
+  </a>
+  <a href="{{ url_for('ocr_extract') }}" class="action-button">
+    <h3>OCR Text Extractor</h3>
+    <p>Extract text from images and scanned documents effortlessly.</p>
+  </a>
+  <a href="{{ url_for('text_to_qr') }}" class="action-button">
+    <h3>QR Code Generator</h3>
+    <p>Generate custom QR codes for any text or URL instantly.</p>
+  </a>
 </div>
 
 

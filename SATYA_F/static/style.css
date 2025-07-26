@@ -17,6 +17,18 @@ body {
     color: #f5f5f5;
     display: block;
 }
+#link{
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+#landing-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
 
 /* Form Container */
@@ -113,7 +125,7 @@ p a:hover {
 /* Navigation Button Style */
 .button {
     display: inline-block;
-    margin-top: 100px;
+    margin-top: 50px;
     padding: 10px 22px;
     background-color: #3498db;
     color: white;
@@ -126,7 +138,7 @@ p a:hover {
 
 .button:hover {
     background-color: #2980b9;
-    transition: scale(1.05);
+    transition: scale(1.01);
 }
 /* Smooth Scrolling */
 html {
@@ -234,87 +246,99 @@ body {
 
 
 .dashboard-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
-  padding: 0 20px;
+  justify-content: center;
+  padding: 20px;
 }
 
 .action-button {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px 20px;
+  justify-content: space-between;
+  width: 200px;
+  height: 250px;
+  padding: 20px;
   background-color: white;
   color: black;
-  font-size: 20px;
-  font-weight: 600;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 15px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
-  transition: transform 0.25s, box-shadow 0.25s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  text-align: center;
 }
 
 .action-button:hover {
-  transform: scale(1.01);
-  background-color: #e5e7eb;
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
-/* 
-.action-button:active {
-  transform: translateY(-2px);
-} */
+.action-button h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.action-button p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
+}
 
-/* === LOGOUT BUTTON === */
+.top-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  width: 100%;
+}
 .action-button2 {
-  /* layout */
-  display: inline-block;           /* keeps it inline while accepting padding */
-  padding: 0.6rem 0.9rem;          /* top‑bottom | left‑right */
-  border: none;   
-  text-decoration: none;                    /* no default button border */
-  /* border-radius: 10px;           pill shape */
-
-  /* typography */
+  display: inline-block;
+  padding: 0.6rem 0.9rem;
+  border: none;
+  text-decoration: none;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: #000000;
-  background: #ffffff;      
-
-  /* interaction */
+  background: #ffffff;
   cursor: pointer;
-  transition:
-    background-color 0.25s ease,
-    transform          0.2s ease,
-    box-shadow         0.25s ease;
-
-  /* subtle elevation */
+  transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  margin-left: 10px; /* Space between buttons */
 }
 
-/* hover / focus state */
 .action-button2:hover,
-.action-button2:focus-visible {     /* for keyboard users */
-  background-color: #e5e7eb;  
+.action-button2:focus-visible {
+  background-color: #e5e7eb;
   color: black;
-  transform: scale(1.03);      
+  transform: scale(1.03);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
   outline: none;
 }
 
-/* active (pressed) */
 .action-button2:active {
-  transform: translateY(0);         /* push back */
+  transform: translateY(0);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) inset;
 }
 
-/* optional: position it in the top‑right of a header */
 header .action-button2 {
-  position: absolute;
-  top: 1rem;
-  right: 2rem;
+  position: static; /* Removed absolute positioning to work with flex */
 }
 
+/* Media query for mobile screens (e.g., max-width: 768px) */
+@media (max-width: 768px) {
+  .top-buttons {
+    justify-content: center;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .action-button2 {
+    margin: 5px 0; /* Vertical spacing between buttons on mobile */
+  }
+}
 
 /* style.css – add at the end */
 
