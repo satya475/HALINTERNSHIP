@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text to QR Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        img {
+            margin-top: 1rem;
+            max-width: 100%;
+            height: auto;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.2rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Text to QR Code Generator</h2>
+        <form method="POST">
+            <textarea name="text" placeholder="Enter text to generate QR code..." required></textarea><br>
+            <button type="submit">Generate QR</button>
+        </form>
+
+        {% if qr_image %}
+            <h3>Generated QR Code:</h3>
+            <img id="qrImage" src="data:image/png;base64,{{ qr_image }}" alt="QR Code">
+            <br>
+
+            <!-- Save button (server-side) -->
+            <button onclick="alert('QR code saved on server as static/qr_codes/{{ qr_filename }}')" class="download-btn" style="background-color: #17a2b8;">
+                Save
+            </button>
+
+            <!-- Save As button (custom filename download) -->
+            <button onclick="saveAs()" class="download-btn">Save As😎</button>
+
+            <script>
+                function saveAs() {
+                    const base64Image = document.getElementById('qrImage').src;
+                    const filename = prompt("Enter filename for your QR code:", "my_qr_code");
+
+                    if (filename) {
+                        const link = document.createElement('a');
+                        link.href = base64Image;
+                        link.download = filename.endsWith('.png') ? filename : filename + ".png";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }
+            </script>
+        {% endif %}
+    </div>
+</body>
+</html>

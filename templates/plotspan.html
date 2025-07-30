@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PlotSpan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="plotspan-bg">
+    <div class="centered-container">
+        <h1>Plot Excel Data</h1>
+
+        <form action="{{ url_for('plotspan') }}" method="POST" enctype="multipart/form-data">
+  <label for="excel_file">Upload Excel File</label>
+  <input type="file" name="excel_file" id="excel_file" accept=".xls,.xlsx">
+
+  <!-- Hidden field to store path of uploaded file -->
+  {% if excel_path %}
+    <input type="hidden" name="excel_path" value="{{ excel_path }}">
+  {% endif %}
+
+  <label>Select X and Y Columns</label>
+  <select name="col1" required>
+    <option disabled selected>Select X</option>
+    {% for col in columns %}
+      <option value="{{ col }}" {% if col == selected_col1 %}selected{% endif %}>{{ col }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="col2" required>
+    <option disabled selected>Select Y</option>
+    {% for col in columns %}
+      <option value="{{ col }}" {% if col == selected_col2 %}selected{% endif %}>{{ col }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit">📈 Plot</button>
+</form>
+
+
+        {% if plot_url %}
+        <h2>Generated Plot:</h2>
+        <img style="background-color: black;"  src="data:image/png;base64,{{ plot_url }}" alt="Plot" id="plot-image">
+
+        <br><br>
+        <!-- Download button -->
+        <a id="download-link" class="download-btn" download="plot.png" href="data:image/png;base64,{{ plot_url }}">
+            Download Plot as PNG
+        </a>
+        {% endif %}
+
+        <br><br>
+        <a style="color: white;"  href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </div>
+</body>
+</html>
