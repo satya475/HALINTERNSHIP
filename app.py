@@ -649,7 +649,7 @@ def my_account():
 
     return render_template('account.html', username=user.username, email=email)
 
-@app.route('/history')
+@app.route('/upload_history')
 @login_required
 def upload_history(): 
     uploads = UploadHistory.query.filter_by(user_id=current_user.id).order_by(UploadHistory.upload_time.desc()).all()
