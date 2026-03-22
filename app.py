@@ -161,45 +161,40 @@ def pdf_chat():
         file = request.files.get('pdf')
 
         if file and file.filename.endswith('.pdf'):
-            # Clear old results
             session.pop('summary', None)
             session.pop('answer', None)
 
-            # Save temporarily and extract text
+            # ── Extract text from PDF using PyPDF2 (no torch needed) ──
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 file.save(tmp.name)
-                temp_path = tmp.name
+                reader = PdfReader(tmp.name)
+                extracted_text = "".join(
+                    page.extract_text() or "" for page in reader.pages
+                )
+            os.remove(tmp.name)
+            session['extracted_text'] = extracted_text[:50000]  # Gemini has large context
 
-            reader = PdfReader(temp_path)
-            extracted_text = ""
-            for page in reader.pages:
-                extracted_text += page.extract_text() or ""
-            reader.stream.close()
-
-            os.remove(temp_path)
-
-            session['extracted_text'] = extracted_text
-
-            # Save upload history
+            # Save upload history (same as before)
             new_upload = UploadHistory(filename=file.filename, user_id=current_user.id)
             db.session.add(new_upload)
             db.session.commit()
 
-
         if action == "summarize" and extracted_text:
-            max_chunk = 2000
-            chunks = [extracted_text[i:i + max_chunk] for i in range(0, len(extracted_text), max_chunk)]
-            summary = ""
-            for c in chunks:
-                result = summarizer(c, max_length=200, min_length=50, do_sample=False)
-                summary += result[0]['summary_text'] + " "
-            summary = summary.strip()
+            # ── Use Gemini to summarize (replaces langchain summarizer) ──
+            prompt = f"Summarize the following document in clear bullet points:\n\n{extracted_text[:10000]}"
+            response = gemini_model.generate_content(prompt)
+            summary = response.text
             session['summary'] = summary
 
         if action == "ask" and question and extracted_text:
-            prompt = f"Answer the question based on the context.\nContext: {extracted_text[:3000]}\nQuestion: {question}"
-            result = qa_pipeline(prompt, max_length=128, do_sample=False)
-            answer = result[0]['generated_text']
+            # ── Use Gemini to answer questions (replaces qa_pipeline + faiss) ──
+            prompt = f"""Answer the question based ONLY on the document below.
+Context:
+{extracted_text[:10000]}
+
+Question: {question}"""
+            response = gemini_model.generate_content(prompt)
+            answer = response.text
             session['answer'] = answer
 
     return render_template(
@@ -209,7 +204,7 @@ def pdf_chat():
         answer=session.get('answer', ""),
         action=action
     )
-
+    
 @app.route('/download_summary', methods=['POST'])
 def download_summary():
     summary_text = request.form.get('summary_text', '')
@@ -484,7 +479,6 @@ def solve_equation():
 
 ##
 
-
 @app.route('/ocr_extract', methods=['GET', 'POST'])
 def ocr_extract():
     raw_text = ""
@@ -493,81 +487,49 @@ def ocr_extract():
 
     if request.method == 'POST':
         file = request.files.get('file')
-
         if not file or file.filename == '':
             flash('No file selected')
             return redirect(request.url)
 
         filename = file.filename.lower()
 
-        # ─── IMAGE HANDLING ───────────────────────────
+        # ── IMAGE: send directly to Gemini Vision ──
         if filename.endswith(('.png', '.jpg', '.jpeg')):
-            image = Image.open(file.stream).convert("RGB")
-            preprocessed_img = preprocess_image(image)
+            img_bytes = file.read()
+            img_b64 = base64.b64encode(img_bytes).decode()
+            ext = filename.rsplit('.', 1)[-1]
+            mime = f"image/{ext.replace('jpg','jpeg')}"
 
-            # (1) pytesseract (layout-preserved OCR)
-            raw_text = pytesseract.image_to_string(preprocessed_img)
+            response = gemini_model.generate_content([
+                {"mime_type": mime, "data": img_b64},
+                "Extract ALL text from this image. Include printed text and handwriting. Return only the extracted text."
+            ])
+            raw_text = response.text
 
-            # (2) TrOCR (handwritten text recognition)
-            try:
-                trocr_pixel = trocr_processor(images=preprocessed_img, return_tensors="pt").pixel_values.to(device)
-                with torch.no_grad():
-                    trocr_output_ids = trocr_model.generate(trocr_pixel)
-                handwritten_text = trocr_processor.batch_decode(trocr_output_ids, skip_special_tokens=True)[0]
-            except Exception as e:
-                handwritten_text = f"[ERROR running TrOCR]: {e}"
+            response2 = gemini_model.generate_content([
+                {"mime_type": mime, "data": img_b64},
+                "Extract any handwritten text from this image only."
+            ])
+            handwritten_text = response2.text
 
-            # (3) Donut (field extraction)
-            try:
-                donut_pixel = processor(preprocessed_img, return_tensors="pt").pixel_values.to(device)
-                task_prompt = "<s_docvqa><s_question>What does the document contain?</s_question><s_answer>"
-                decoder_input_ids = processor.tokenizer(task_prompt, add_special_tokens=False, return_tensors="pt").input_ids.to(device)
-                with torch.no_grad():
-                    outputs = model.generate(
-                        donut_pixel,
-                        decoder_input_ids=decoder_input_ids,
-                        max_length=512,
-                        bad_words_ids=[[processor.tokenizer.unk_token_id]],
-                        return_dict_in_generate=True
-                    )
-                structured_output = processor.batch_decode(outputs.sequences)[0]
-                structured_output = structured_output.replace(processor.tokenizer.eos_token, "").replace("<pad>", "").strip()
-            except Exception as e:
-                structured_output = f"[ERROR running Donut]: {e}"
+            response3 = gemini_model.generate_content([
+                {"mime_type": mime, "data": img_b64},
+                "Describe the structure of this document: headings, tables, paragraphs, lists."
+            ])
+            structured_output = response3.text
 
-        # ─── PDF HANDLING ─────────────────────────────
+        # ── PDF: extract text, then use Gemini for structure ──
         elif filename.endswith('.pdf'):
-            import tempfile
-            from PyPDF2 import PdfReader
-            from pdf2image import convert_from_path
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                file.save(tmp.name)
+                reader = PdfReader(tmp.name)
+                raw_text = "".join(p.extract_text() or "" for p in reader.pages)
+            os.remove(tmp.name)
 
-            try:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                    file.save(tmp.name)
-                    pdf_path = tmp.name
-
-                # Extract text directly from PDF
-                reader = PdfReader(pdf_path)
-                for page in reader.pages:
-                    raw_text += page.extract_text() or ""
-
-                # Also OCR any images in the PDF (optional)
-                images = convert_from_path(pdf_path)
-                for img in images:
-                    pre_img = preprocess_image(img)
-                    raw_text += "\n" + pytesseract.image_to_string(pre_img)
-
-                os.remove(pdf_path)
-            except Exception as e:
-                raw_text = f"[ERROR reading PDF]: {e}"
-
-        # ─── CSV HANDLING ─────────────────────────────
-        elif filename.endswith('.csv'):
-            try:
-                df = pd.read_csv(file)
-                raw_text = df.to_string(index=False)
-            except Exception as e:
-                raw_text = f"[ERROR reading CSV]: {e}"
+            response = gemini_model.generate_content(
+                f"Describe the structure and content of this PDF text:\n\n{raw_text[:5000]}"
+            )
+            structured_output = response.text
 
         else:
             flash("Unsupported file format.")
@@ -579,7 +541,6 @@ def ocr_extract():
         structured_output=structured_output,
         handwritten_text=handwritten_text
     )
-
 
 ##Add new code here
 
