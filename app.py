@@ -4,35 +4,35 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_bcrypt import Bcrypt
 from PyPDF2 import PdfReader
-from transformers import DonutProcessor, pipeline, VisionEncoderDecoderModel, TrOCRProcessor
-import tempfile
-import uuid
-import os
-from fpdf import FPDF
+import tempfile, uuid, os, base64, math, io
+from io import BytesIO
+from datetime import datetime
+from PIL import Image
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
-import io
-from io import BytesIO
-import base64
-from datetime import datetime
-from PIL import Image, ImageOps, ImageEnhance
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-os.environ["TESSDATA_PREFIX"] = r"C:\Users\HAL\Downloads"
-from pdf2image import convert_from_path  
-poppler_path = r"C:\Users\HAL\Downloads\Release-24.08.0-0\poppler-24.08.0\Library\bin"
-
-# images = convert_from_path("your_file.pdf", poppler_path=poppler_path)
-import torch
-import layoutparser as lp
-import cv2
-import numpy as np
 from sympy import symbols, Eq, solve, sympify
-import math
 import qrcode
+from fpdf import FPDF
+from dotenv import load_dotenv
 
+# ── Gemini setup ─────────────────────────────────
+import google.generativeai as genai
+
+load_dotenv()
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+
+# ── Flask app setup (same as before) ─────────────
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
 def preprocess_image(image):
     # Convert to grayscale
@@ -46,19 +46,6 @@ def preprocess_image(image):
     image = enhancer.enhance(2.0)
     
     return image
-
-
-
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-
-# Database & Auth Setup
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
 
 # Transformers
 summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
